@@ -80,7 +80,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <Label htmlFor="template">
-                    Template (use {{input}} for user input)
+                    Template (use {"{{input}}"} for user input)
                   </Label>
                   <Textarea
                     id="template"
