@@ -1,26 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { processPrompt } from "./openai";
 import { insertPromptSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
-  setupAuth(app);
-
-  // Admin check middleware
-  const requireAdmin = (req: any, res: any, next: any) => {
-    if (!req.user?.isAdmin) {
-      return res.status(403).send("Admin access required");
-    }
-    next();
-  };
-
-  // Prompts management (admin only)
-  app.post("/api/prompts", requireAdmin, async (req, res) => {
+  // Prompts management
+  app.post("/api/prompts", async (req, res) => {
     try {
       const data = insertPromptSchema.parse(req.body);
-      const prompt = await storage.createPrompt(data, req.user!.id);
+      const prompt = await storage.createPrompt(data, 1); // Default user ID
       res.status(201).json(prompt);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -32,7 +21,7 @@ export function registerRoutes(app: Express): Server {
     res.json(prompts);
   });
 
-  app.delete("/api/prompts/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/prompts/:id", async (req, res) => {
     try {
       await storage.deletePrompt(parseInt(req.params.id));
       res.sendStatus(200);
@@ -41,7 +30,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.patch("/api/prompts/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/prompts/:id", async (req, res) => {
     try {
       const data = insertPromptSchema.partial().parse(req.body);
       const prompt = await storage.updatePrompt(parseInt(req.params.id), data);

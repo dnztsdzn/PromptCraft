@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -10,7 +9,6 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function HomePage() {
-  const { user, logoutMutation } = useAuth();
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [userInput, setUserInput] = useState("");
   const [response, setResponse] = useState<string | null>(null);
@@ -34,22 +32,11 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-[#1C1C1E]">
-            Welcome, {user?.username}
+            AI Interaction Platform
           </h1>
-          <div className="space-x-4">
-            {user?.isAdmin && (
-              <Button asChild variant="outline">
-                <Link href="/admin">Admin Panel</Link>
-              </Button>
-            )}
-            <Button
-              onClick={() => logoutMutation.mutate()}
-              variant="destructive"
-              disabled={logoutMutation.isPending}
-            >
-              Logout
-            </Button>
-          </div>
+          <Button asChild variant="outline">
+            <Link href="/admin">Admin Panel</Link>
+          </Button>
         </header>
 
         <div className="grid md:grid-cols-2 gap-6">

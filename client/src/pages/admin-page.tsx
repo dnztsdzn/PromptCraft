@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +14,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPromptSchema, InsertPrompt } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Redirect, Link } from "wouter";
+import { Link } from "wouter";
 
 export default function AdminPage() {
-  const { user } = useAuth();
-
   const form = useForm<InsertPrompt>({
     resolver: zodResolver(insertPromptSchema),
   });
@@ -48,10 +45,6 @@ export default function AdminPage() {
     },
   });
 
-  if (!user?.isAdmin) {
-    return <Redirect to="/" />;
-  }
-
   return (
     <div className="min-h-screen bg-[#F2F2F7] p-6">
       <div className="max-w-7xl mx-auto">
@@ -60,7 +53,7 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold text-[#1C1C1E]">Admin Panel</h1>
             <p className="text-gray-600">Manage AI prompts and templates</p>
           </div>
-          <Button asChild variant="default" className="bg-[#007AFF] hover:bg-[#0051A8]">
+          <Button asChild variant="outline">
             <Link href="/">Back to Home</Link>
           </Button>
         </header>
