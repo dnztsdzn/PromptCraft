@@ -15,9 +15,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPromptSchema, InsertPrompt } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
+import { useState } from "react";
+import { Edit2, Trash2 } from "lucide-react";
 
 export default function AdminPage() {
-  const form = useForm<InsertPrompt>({
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
+
+  const createForm = useForm<InsertPrompt>({
+    resolver: zodResolver(insertPromptSchema),
+  });
+
+  const editForm = useForm<InsertPrompt>({
     resolver: zodResolver(insertPromptSchema),
   });
 
@@ -32,7 +40,19 @@ export default function AdminPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/prompts"] });
-      form.reset();
+      createForm.reset();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: InsertPrompt }) => {
+      const res = await apiRequest("PATCH", `/api/prompts/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/prompts"] });
+      setEditingPrompt(null);
+      editForm.reset();
     },
   });
 
@@ -44,6 +64,15 @@ export default function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/prompts"] });
     },
   });
+
+  const startEditing = (prompt: Prompt) => {
+    setEditingPrompt(prompt);
+    editForm.reset({
+      title: prompt.title,
+      description: prompt.description,
+      template: prompt.template,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] p-6">
@@ -60,20 +89,20 @@ export default function AdminPage() {
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
-            <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}>
+            <form onSubmit={createForm.handleSubmit((data) => createMutation.mutate(data))}>
               <CardHeader>
                 <h2 className="text-xl font-semibold">Create New Prompt</h2>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="title">Title</Label>
-                  <Input id="title" {...form.register("title")} />
+                  <Input id="title" {...createForm.register("title")} />
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    {...form.register("description")}
+                    {...createForm.register("description")}
                   />
                 </div>
                 <div>
@@ -82,7 +111,7 @@ export default function AdminPage() {
                   </Label>
                   <Textarea
                     id="template"
-                    {...form.register("template")}
+                    {...createForm.register("template")}
                     placeholder="Example: Here's what I found about {{input}}:\n\n{{search}}\n\nBased on these results, I can tell you that..."
                   />
                 </div>
@@ -99,37 +128,100 @@ export default function AdminPage() {
             </form>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h2 className="text-xl font-semibold">Existing Prompts</h2>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {prompts?.map((prompt) => (
-                <Card key={prompt.id}>
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <h2 className="text-xl font-semibold">Existing Prompts</h2>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {prompts?.map((prompt) => (
+                  <Card key={prompt.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold">{prompt.title}</h3>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => startEditing(prompt)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteMutation.mutate(prompt.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">{prompt.description}</p>
+                      <p className="text-sm mt-2">
+                        <span className="font-semibold">Template:</span>{" "}
+                        {prompt.template}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
+
+            {editingPrompt && (
+              <Card>
+                <form
+                  onSubmit={editForm.handleSubmit((data) =>
+                    updateMutation.mutate({ id: editingPrompt.id, data })
+                  )}
+                >
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold">{prompt.title}</h3>
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">Edit Prompt</h2>
                       <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(prompt.id)}
-                        disabled={deleteMutation.isPending}
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setEditingPrompt(null)}
                       >
-                        Delete
+                        Cancel
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600">{prompt.description}</p>
-                    <p className="text-sm mt-2">
-                      <span className="font-semibold">Template:</span>{" "}
-                      {prompt.template}
-                    </p>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-title">Title</Label>
+                      <Input id="edit-title" {...editForm.register("title")} />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Textarea
+                        id="edit-description"
+                        {...editForm.register("description")}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-template">Template</Label>
+                      <Textarea
+                        id="edit-template"
+                        {...editForm.register("template")}
+                      />
+                    </div>
                   </CardContent>
-                </Card>
-              ))}
-            </CardContent>
-          </Card>
+                  <CardFooter>
+                    <Button
+                      type="submit"
+                      className="w-full bg-[#007AFF]"
+                      disabled={updateMutation.isPending}
+                    >
+                      Save Changes
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
