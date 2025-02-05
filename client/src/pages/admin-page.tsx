@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPromptSchema, InsertPrompt } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -55,9 +55,14 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#F2F2F7] p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1C1C1E]">Admin Panel</h1>
-          <p className="text-gray-600">Manage AI prompts and templates</p>
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1C1C1E]">Admin Panel</h1>
+            <p className="text-gray-600">Manage AI prompts and templates</p>
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/">Back to Home</Link>
+          </Button>
         </header>
 
         <div className="grid md:grid-cols-2 gap-6">
