@@ -79,7 +79,12 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+    const user = req.user as SelectUser;
+    res.status(200).json({
+      id: user.id,
+      username: user.username,
+      isAdmin: user.isAdmin,
+    });
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -91,6 +96,11 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    const user = req.user as SelectUser;
+    res.json({
+      id: user.id,
+      username: user.username,
+      isAdmin: user.isAdmin,
+    });
   });
 }
