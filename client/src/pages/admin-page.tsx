@@ -78,7 +78,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <Label htmlFor="template">
-                    Template (use {{input}} for user input and {{search}} for internet search results)
+                    Template (use {"{{"}<span>input</span>{"}}"}  for user input and {"{{"}<span>search</span>{"}}"}  for internet search results)
                   </Label>
                   <Textarea
                     id="template"
