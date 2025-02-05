@@ -82,7 +82,7 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold text-[#1C1C1E]">Admin Panel</h1>
             <p className="text-gray-600">Manage AI prompts and templates</p>
           </div>
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="bg-[#007AFF] text-white hover:bg-[#0056b3]">
             <Link href="/">Back to Home</Link>
           </Button>
         </header>
