@@ -78,12 +78,12 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <Label htmlFor="template">
-                    Template (use {"{{input}}"} for user input)
+                    Template (use {{input}} for user input and {{search}} for internet search results)
                   </Label>
                   <Textarea
                     id="template"
                     {...form.register("template")}
-                    placeholder="Example: Analyze the following text: {{input}}"
+                    placeholder="Example: Here's what I found about {{input}}:\n\n{{search}}\n\nBased on these results, I can tell you that..."
                   />
                 </div>
               </CardContent>

@@ -1,11 +1,24 @@
 import OpenAI from "openai";
+import { performSearch } from "./search";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function processPrompt(template: string, userInput: string): Promise<string> {
   try {
-    const finalPrompt = template.replace("{{input}}", userInput);
+    // Check if the template contains a search placeholder
+    const needsSearch = template.includes("{{search}}");
+    let finalPrompt = template;
+
+    if (needsSearch) {
+      // Perform search based on user input
+      const searchResults = await performSearch(userInput);
+      // Replace search placeholder with actual search results
+      finalPrompt = template.replace("{{search}}", searchResults);
+    }
+
+    // Replace user input placeholder
+    finalPrompt = finalPrompt.replace("{{input}}", userInput);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -21,6 +34,6 @@ export async function processPrompt(template: string, userInput: string): Promis
 
     return response.choices[0].message.content || "No response generated";
   } catch (error: any) {
-    throw new Error(`OpenAI API error: ${error.message}`);
+    throw new Error(`Error processing prompt: ${error.message}`);
   }
 }
